@@ -1,0 +1,130 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
+'''
+多层神经网络
+'''
+
+import numpy as np
+import tensorflow as tf
+import pandas as pd
+import sklearn as sk
+from sklearn.model_selection import train_test_split
+from tensorflow.python.framework import ops
+from sklearn import preprocessing
+import os
+
+# input data
+data_train=pd.read_csv('C:/Users/Administrator/Desktop/EISdatacsv/csv-train-2.csv',sep=',')
+data_test=pd.read_csv('C:/Users/Administrator/Desktop/EISdatacsv/csv-test.csv',sep=',')
+
+labels_raw=data_train['label'][:,np.newaxis]
+features_train=data_train.drop('label', axis=1)
+
+#如何高效建立矩阵????
+labels_train=np.mat([[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],
+                [0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],[0,1,0],
+                [0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]])
+
+
+features_test=data_test.drop('label', axis=1)
+labels_test=np.mat([[1,0,0],[0,1,0],[0,0,1]])
+
+X_train=features_train
+Y_train=labels_train
+X_test=features_test
+Y_test=labels_test
+
+
+# define placeholder for inputs to network
+def creat_placeholder(n_x,n_y):
+    X = tf.placeholder(tf.float32, [None,n_x])
+    Y = tf.placeholder(tf.float32, [None,n_y])  #Y就是y_
+    return X,Y
+
+###以下两个def 是y = tf.nn.softmax(tf.matmul(x,W) + b)，，Z3就是y
+def initialize_parameters(n_inputs,n_l1,n_l2,n_l3):
+
+    W1=tf.get_variable('W1',[n_l1,n_inputs],initializer=tf.contrib.layers.xavier_initializer())
+    b1=tf.get_variable('b1',[n_l1],initializer=tf.zeros_initializer())
+    W2=tf.get_variable('W2',[n_l1,n_l2],initializer=tf.contrib.layers.xavier_initializer())
+    b2=tf.get_variable('b2',[n_l2],initializer=tf.zeros_initializer())
+    W3=tf.get_variable('W3',[n_l2,n_l3],initializer=tf.contrib.layers.xavier_initializer())
+    b3=tf.get_variable('b3',[n_l3],initializer=tf.zeros_initializer())
+
+    parameters={'W1':W1,'b1':b1,'W2':W2,'b2':b2,'W3':W3,'b3':b3}
+
+    return parameters
+
+def forward_propagation(X,parameters):
+    W1=parameters['W1']
+    b1=parameters['b1']
+    W2=parameters['W2']
+    b2=parameters['b2']
+    W3=parameters['W3']
+    b3=parameters['b3']
+
+    Z1=tf.matmul(X,W1)+b1
+    A1=tf.nn.tanh(Z1)
+    Z2=tf.matmul(A1,W2)+b2
+    A2=tf.nn.tanh(Z2)
+    Z3=tf.nn.softmax(tf.matmul(A2,W3)+b3)
+
+    return Z3
+
+###这个def ok
+def comput_cost(Z3,Y):
+    #cost就是cross_entropy
+    # cost = tf.reduce_mean(tf.reduce_sum((Y-Z3)**2))
+    # cost = tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=Z3)
+    cost = -tf.reduce_sum(Y*tf.log(Z3))
+    # cost = tf.reduce_mean(cost)
+    return cost
+
+
+num_features=80  #n_x
+num_label=3     #n_y
+learning_rate=0.005
+num_epochs=10000
+ops.reset_default_graph()
+
+n_x = num_features
+n_y = num_label
+
+cost=[]
+
+X,Y=creat_placeholder(n_x,n_y)
+
+parameters=initialize_parameters(n_x,80,10,3)
+
+Z3=forward_propagation(X,parameters)
+
+cost=comput_cost(Z3,Y)
+
+# optimizer=tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+
+optimizer=tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
+
+
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+
+    sess.run(init)
+    saver = tf.train.Saver()
+
+    for epoch in range (num_epochs):
+
+        _,epoch_cost=sess.run([optimizer,cost],feed_dict={X:X_train,Y:Y_train})
+
+        if epoch % 2000 == 0:
+            print ('Cost after epoch %i:%f' %(epoch,epoch_cost))
+
+    parameters=sess.run(parameters)
+
+    model_dir = "C:/Users/Administrator/Desktop/EISdatacsv/NN-parameters"
+    model_name = "ckp"
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+
+    saver.save(sess, os.path.join(model_dir, model_name))
