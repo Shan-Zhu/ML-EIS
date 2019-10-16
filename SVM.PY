@@ -1,7 +1,3 @@
-'''
-SVM for EIS
-'''
-
 from numpy import *
 import numpy as np
 import pandas as pd
@@ -16,43 +12,50 @@ import matplotlib.pyplot as plt
 
 
 # input data
-data_train=pd.read_csv('EIS-Data.csv',sep=',')
+data_train=pd.read_csv('C:/Users/Administrator/Desktop/JEAC-review/EIS-Data-Nor-2.csv',sep=',')
 
-labels=data_train['label'][:,np.newaxis]
-features=data_train.drop('label', axis=1)
+labels=data_train['Type'][:,np.newaxis]
+features=data_train.drop('Type', axis=1)#'DOI',
 
-X_train,X_test,Y_train,Y_test=train_test_split(features, labels, test_size=0.2, random_state=0) 
+C_value=5#2.5#1#5,2.5
+gamma_value=0.35#0.45#0.2#0.35,0.45
 
-n_samples, n_features = X_train.shape
+def ml_eis(features, labels, random_state,C_value,gamma_value):
 
-C_value=1
-gamma_value=1
+    X_train,X_test,Y_train,Y_test=train_test_split(features, labels, test_size=0.2) #, random_state=0
 
-# kernel = 'rbf'
-clf_rbf = svm.SVC(kernel='rbf',C=C_value,gamma=gamma_value,probability=True)
-clf_rbf.fit(X_train,Y_train)
-score_rbf = clf_rbf.score(X_test,Y_test)
-score_rbf2 = clf_rbf.score(X_train,Y_train)
+    # n_samples, n_features = X_train.shape
 
-# # kernel = 'linear'
-clf_linear = svm.SVC(kernel='linear',C=C_value)
-clf_linear.fit(X_train,Y_train)
-score_linear = clf_linear.score(X_test,Y_test)
-score_linear2 = clf_linear.score(X_train,Y_train)
+    # kernel = 'rbf'
+    clf_rbf = svm.SVC(kernel='rbf',C=C_value,gamma=gamma_value,probability=True)
+    clf_rbf.fit(X_train,Y_train)
+    rbf_test = clf_rbf.score(X_test,Y_test)
+    rbf_train = clf_rbf.score(X_train,Y_train)
 
-# kernel = 'poly'
-clf_poly = svm.SVC(kernel='poly',C=C_value)
-clf_poly.fit(X_train,Y_train)
-score_poly = clf_poly.score(X_test,Y_test)
-score_poly2 = clf_poly.score(X_train,Y_train)
+    # kernel = 'linear'
+    clf_linear = svm.SVC(kernel='linear',C=C_value,gamma=gamma_value)
+    clf_linear.fit(X_train,Y_train)
+    linear_test = clf_linear.score(X_test,Y_test)
+    linear_train = clf_linear.score(X_train,Y_train)
 
-print('C= %f' %C_value)
-print (Y_test)
-print(clf_rbf.predict_proba(X_test))
-print("The score of rbf is : %f"%score_rbf)
-print("The score of rbf2 is : %f"%score_rbf2)
-print("The score of linear is : %f"%score_linear)
-print("The score of linear2 is : %f"%score_linear2)
-print("The score of poly is : %f"%score_poly)
-print("The score of poly2 is : %f"%score_poly2)
+    #kernel = 'poly'
+    clf_poly = svm.SVC(kernel='poly',C=C_value)
+    clf_poly.fit(X_train,Y_train)
+    poly_test = clf_poly.score(X_test,Y_test)
+    poly_train = clf_poly.score(X_train,Y_train)
 
+    result_score=pd.DataFrame([rbf_test,rbf_train,linear_test,linear_train,poly_test, poly_train], columns=[random_state], index=['rbf_test','rbf_train','linear_test','linear_train','poly_test', 'poly_train'])
+
+    return result_score
+
+result_score= ml_eis(features, labels, 0, C_value,gamma_value)
+
+for num in range(1,101):
+    result_score_1= ml_eis(features, labels, num, C_value,gamma_value)
+
+    result_score=result_score.join(result_score_1)
+
+
+result_score.to_csv('C:/Users/Administrator/Desktop/JEAC-review/result_score.csv',sep=',')
+
+print ('OK')
