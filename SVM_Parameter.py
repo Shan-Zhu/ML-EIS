@@ -11,7 +11,7 @@ from sklearn import manifold
 import matplotlib.pyplot as plt
 
 # input data
-data_train=pd.read_csv('C:/Users/Administrator/Desktop/JEAC-review/EIS-Data-Nor-2.csv',sep=',')
+data_train=pd.read_csv('...',sep=',')
 
 labels=data_train['Type'][:,np.newaxis]
 features=data_train.drop('Type', axis=1)#'DOI',
@@ -29,10 +29,3 @@ for gamma in [0.25,5,1,0.4,0.1,0.15,0.2,0.3,0.35,,0.45,0.5,2]:#
         parameters = {'gamma':gamma,'C':C}
         print(rbf_test)
         print("Best parameters:{}".format(parameters))
-#
-#         if rbf_test > best_score:#找到表现最好的参数
-#             best_score = rbf_test
-#             best_parameters = {'gamma':gamma,'C':C}
-# ####   grid search end
-# print("Best score:{:.2f}".format(best_score))
-# print("Best parameters:{}".format(best_parameters))
