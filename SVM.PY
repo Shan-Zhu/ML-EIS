@@ -17,8 +17,8 @@ data_train=pd.read_csv('...',sep=',')
 labels=data_train['Type'][:,np.newaxis]
 features=data_train.drop('Type', axis=1)#'DOI',
 
-C_value=5#2.5#1#5,2.5
-gamma_value=0.35#0.45#0.2#0.35,0.45
+C_value=
+gamma_value=
 
 def ml_eis(features, labels, random_state,C_value,gamma_value):
 
