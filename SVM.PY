@@ -56,6 +56,6 @@ for num in range(1,101):
     result_score=result_score.join(result_score_1)
 
 
-result_score.to_csv('C:/Users/Administrator/Desktop/JEAC-review/result_score.csv',sep=',')
+result_score.to_csv('...',sep=',')
 
 print ('OK')
